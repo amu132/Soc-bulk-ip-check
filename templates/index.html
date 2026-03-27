@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ app_name }}</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="header">
+        <div>
+          <div class="title">{{ app_name }}</div>
+          <div class="subtitle">Bulk check IP reputation with AbuseIPDB + VirusTotal (max 30 per run).</div>
+        </div>
+        <div class="pill-row">
+          <span class="pill {{ 'ok' if has_abuse_key else 'warn' }}">AbuseIPDB key: {{ 'set' if has_abuse_key else 'missing' }}</span>
+          <span class="pill {{ 'ok' if has_vt_key else 'warn' }}">VirusTotal key: {{ 'set' if has_vt_key else 'missing' }}</span>
+          {% if auth_enabled %}
+            <form method="post" action="/logout">
+              <button type="submit" class="pill">Logout</button>
+            </form>
+          {% endif %}
+        </div>
+      </header>
+
+      <section class="card">
+        <form id="checkForm" class="form">
+          <label class="label" for="ips">IPs (newline or comma separated)</label>
+          <textarea id="ips" name="ips" rows="7" placeholder="8.8.8.8&#10;1.1.1.1&#10;2606:4700:4700::1111"></textarea>
+          <div class="row">
+            <button type="submit" class="btn" id="runBtn">Run check</button>
+            <button type="button" class="btn secondary" id="exportBtn" disabled>Export CSV</button>
+            <div class="status" id="status"></div>
+          </div>
+          <div class="hint">
+            Set env vars before starting server: <code>ABUSEIPDB_API_KEY</code> and <code>VT_API_KEY</code> (or <code>VIRUSTOTAL_API_KEY</code>).
+          </div>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="table-wrap">
+          <table class="table" id="resultsTable">
+            <thead>
+              <tr>
+                <th>IP</th>
+                <th>Abuse score</th>
+                <th>Reports</th>
+                <th>VT reputation</th>
+                <th>VT stats</th>
+                <th>Links</th>
+                <th>Details</th>
+                <th>Errors</th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody">
+              <tr class="empty">
+                <td colspan="8">No results yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <div>Tip: keep your API keys server-side (don’t paste them into the browser).</div>
+      </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

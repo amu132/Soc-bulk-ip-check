@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ app_name }} - Login</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="header">
+        <div>
+          <div class="title">{{ app_name }}</div>
+          <div class="subtitle">Login required.</div>
+        </div>
+      </header>
+
+      <section class="card">
+        <form method="post" action="/login" class="form">
+          <label class="label" for="password">Password</label>
+          <input id="password" name="password" type="password" class="input" autofocus />
+          <div class="row">
+            <button type="submit" class="btn">Login</button>
+            {% if error %}
+              <div class="status bad">{{ error }}</div>
+            {% endif %}
+          </div>
+          <div class="hint">Set the server env var <code>APP_PASSWORD</code> to enable login.</div>
+        </form>
+      </section>
+    </div>
+  </body>
+</html>
+
