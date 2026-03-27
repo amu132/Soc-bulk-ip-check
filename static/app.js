@@ -242,12 +242,25 @@ form.addEventListener("submit", async (e) => {
     const body = new FormData();
     body.set("ips", ips);
     const res = await fetch("/api/check", { method: "POST", body });
-    const json = await res.json().catch(() => null);
+
+    const contentType = res.headers.get("content-type") || "";
+    const isJson = contentType.toLowerCase().includes("application/json");
+    const json = isJson ? await res.json().catch(() => null) : null;
+
     if (!res.ok) {
       const msg = json?.error || `Request failed (${res.status})`;
       setStatus(msg, "bad");
       renderEmpty(msg);
       lastResults = [];
+      return;
+    }
+
+    if (!json || typeof json !== "object") {
+      const msg = "Session expired or not logged in. Please login again and retry.";
+      setStatus(msg, "bad");
+      renderEmpty(msg);
+      lastResults = [];
+      window.location.href = "/login";
       return;
     }
 
