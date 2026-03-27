@@ -222,6 +222,25 @@ RATE_LIMIT_MAX_REQUESTS = 20
 _rate: Dict[str, List[int]] = {}  # client_ip -> request epoch seconds list
 
 
+def render_template(
+    request: Request,
+    name: str,
+    context: Dict[str, Any],
+    *,
+    status_code: int = 200,
+) -> HTMLResponse:
+    """
+    Starlette's Jinja2Templates.TemplateResponse signature has differed across versions.
+    Use a small compatibility shim so deployments (Render, etc.) don't break.
+    """
+    try:
+        # Newer Starlette: TemplateResponse(name, context, ...)
+        return templates.TemplateResponse(name, context, status_code=status_code)
+    except TypeError:
+        # Older Starlette: TemplateResponse(request, name, context, ...)
+        return templates.TemplateResponse(request, name, context, status_code=status_code)
+
+
 def _auth_enabled() -> bool:
     return bool(_env("APP_PASSWORD"))
 
@@ -290,10 +309,7 @@ async def healthz() -> JSONResponse:
 async def login_get(request: Request) -> HTMLResponse:
     if not _auth_enabled():
         return RedirectResponse(url="/", status_code=302)
-    return templates.TemplateResponse(
-        "login.html",
-        {"request": request, "app_name": APP_NAME, "error": None},
-    )
+    return render_template(request, "login.html", {"request": request, "app_name": APP_NAME, "error": None})
 
 
 @app.post("/login")
@@ -303,7 +319,8 @@ async def login_post(request: Request, password: str = Form(...)) -> Response:
         return RedirectResponse(url="/", status_code=302)
 
     if not secrets.compare_digest(password.strip(), expected):
-        return templates.TemplateResponse(
+        return render_template(
+            request,
             "login.html",
             {"request": request, "app_name": APP_NAME, "error": "Invalid password."},
             status_code=401,
@@ -336,7 +353,8 @@ async def logout_post(request: Request) -> Response:
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(
+    return render_template(
+        request,
         "index.html",
         {
             "request": request,
